@@ -11,12 +11,14 @@ class ViT_BERT_model(nn.Module):
         self.BERT_model=BERT_model
     
         self.ViT_model.head=nn.Linear(ViT_model.head.in_features,vit_hidden,bias=True)
+        self.ViT_model.to(self.device)
 
         self.FusionLayer=nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Linear(vit_hidden+BERT_model.config.hidden_size,512),
             nn.ReLU(),
-            nn.Linear(vit_hidden+BERT_model.config.hidden_size,num_classes)
-        )
+            nn.Dropout(p=0.3),
+            nn.Linear(512,num_classes)
+        ).to(device)
     
     def forward(self,image_tensor,labels,sequence):
         
@@ -24,7 +26,7 @@ class ViT_BERT_model(nn.Module):
         esm_ViT=self.ViT_model(image_tensor)
 
         #BERT embeddings
-        seq=self.BERT_tokenizer(list(sequence),return_tensors="pt",padding=True,truncation=True)
+        seq=self.BERT_tokenizer(list(sequence),return_tensors="pt",padding=True,truncation=True,max_length=1024)
         encoding={k:v.to(self.device) for k, v in seq.items()}
         output=self.BERT_model(**encoding)
         esm_BERT=output.pooler_output
@@ -33,4 +35,6 @@ class ViT_BERT_model(nn.Module):
         fused_embeddings=torch.cat([esm_ViT,esm_BERT],dim=1)
         logits=self.FusionLayer(fused_embeddings)
         loss=self.loss_fn(logits,labels)
-        return loss
+        #del fused_embeddings,esm_BERT,encoding,esm_ViT
+        #torch.cuda.empty_cache()
+        return loss,logits

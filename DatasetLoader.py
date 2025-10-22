@@ -1,9 +1,19 @@
 import torch
 import os
+
+from functools import partial
 from config import DATA_DIR
 from PIL import Image
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+
+def collate_fn_ram(batch,loader):
+    loaded=[loader._load_sample(img_path,label) for img_path, label in batch]
+    images,labels,sequences=zip(*loaded)
+    images=torch.stack(images)
+    labels=torch.tensor(labels)
+    return images,labels,sequences
+
 
 class DatasetLoader:
     def __init__(self,root_dir=DATA_DIR):
@@ -28,6 +38,7 @@ class DatasetLoader:
         self.val_idx=indices[self.train_size:self.train_size+self.val_size]
         self.test_idx=indices[self.train_size+self.val_size:]
 
+
     def _load_sample(self,img_path,label):
         img=Image.open(img_path).convert("RGB")
         img_tensor=self.transform(img)
@@ -39,16 +50,12 @@ class DatasetLoader:
         else:
             sequence=""
         return img_tensor,label,sequence
-
-    def _create_loader(self,indices,batch_size,shuffle=True):
+    
+    
+    def _create_loader(self,indices,batch_size,shuffle=False):
         subset=[self.samples[i] for i in indices]
-        def collate_fn(batch):
-            loaded=[self._load_sample(img_path, label) for img_path, label in batch]
-            images,labels,sequences=zip(*loaded)
-            images=torch.stack(images)
-            labels=torch.tensor(labels)
-            return images,labels,sequences
-        return DataLoader(subset,batch_size=batch_size,shuffle=shuffle,collate_fn=collate_fn)
+        collate = partial(collate_fn_ram, loader=self)
+        return DataLoader(subset,batch_size=batch_size,shuffle=shuffle,collate_fn=collate,prefetch_factor=4,num_workers=8)
 
     def TrainSplit(self,batch_size):
         return self._create_loader(self.train_idx,batch_size,shuffle=True)

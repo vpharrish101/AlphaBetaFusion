@@ -26,7 +26,6 @@ def three_to_one(resname):
     }
     return mapping.get(resname.strip().upper(),'X')
 
-
 classes={
     "alpha"     : r'D:\Python311\ViT-BERT\CATH\contact_maps\alpha',
     "beta"      : r'D:\Python311\ViT-BERT\CATH\contact_maps\beta',
@@ -92,7 +91,7 @@ def process_pdb(pdb_id,class_key):
             return False
 
         cm=compute_contact_map(coords_list,distance_threshold)
-        if cm.sum()<min_contacts:
+        if cm.sum()<min_contacts:   
             return False
 
         cm_rgb=np.stack([cm,cm,cm],axis=-1)*255
@@ -117,6 +116,7 @@ def process_pdb(pdb_id,class_key):
     except Exception as e:
         print(f"{pdb_id} failed: {e}")
         return False
+
 
 def batch_process_pdbs(pdb_dict,max_workers=8):
     futures={}
