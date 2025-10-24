@@ -21,9 +21,9 @@ Follow the steps to generate contact maps and FASTA sequences.
 
 
 ## Model evaluations
--Train accuracy lingered around 85-90% after unfreezing layers 7-11 on vit_tiny and last 2 layers on facebook/esm2_t6_8M_UR50D. 
--Validation accuracy is 76%. A ~10% loss in accuracy is observed. 
--My reasioning is that, 10% difference is more attributable to factors like generalization gap, difficult nature of class seperation, and freezing of lower transformer layers (the model can't learn the underlying features of the structures well. But unfreezing lower layers demands an exponential raise in availability of training data and compute clusters, which is simply not feasible) rather than overfitting.
+- Train accuracy lingered around 85-90% after unfreezing layers 7-11 on vit_tiny and last 2 layers on facebook/esm2_t6_8M_UR50D. 
+- Validation accuracy is 76%. A ~10% loss in accuracy is observed. 
+- My reasioning is that, 10% difference is more attributable to factors like generalization gap, difficult nature of class seperation, and freezing of lower transformer layers (the model can't learn the underlying features of the structures well. But unfreezing lower layers demands an exponential raise in availability of training data and compute clusters, which is simply not feasible) rather than overfitting.
 
 
 
